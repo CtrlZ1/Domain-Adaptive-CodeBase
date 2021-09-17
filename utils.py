@@ -126,6 +126,11 @@ def one_hot_label(Labels,n_labels):
 
 
 def set_requires_grad(model, requires_grad=True):
+    '''
+    :param model: the model that need to update
+    :param requires_grad: if the model need to update
+    :return:
+    '''
     for param in model.parameters():
         param.requires_grad = requires_grad
 
@@ -151,3 +156,59 @@ def compute_gradient_penalty(D, real_samples, fake_samples):
     gradients=gradients.view(gradients.size(0),-1)
     gradients_penalty=((gradients.norm(2,dim=1)-1)**2).mean()
     return gradients_penalty
+
+
+def mini_batch_class_balanced(label, sample_size=20, shuffle=False):
+    ''' sample the mini-batch with class balanced
+    '''
+    if shuffle:
+        rindex = np.random.permutation(len(label))
+        label = np.array(label)[rindex]
+
+    n_class = len(np.unique(label))
+    index = []
+    for i in range(n_class):
+        s_index = np.nonzero(label == i)
+        s_ind = np.random.permutation(s_index[0])
+        index = np.append(index, s_ind[0:sample_size])
+        #          print(index)
+    index = np.array(index, dtype=int)
+    return index
+
+
+# Label propagation
+def Label_propagation(Xt, Ys, g, n_labels):
+    '''
+    :param Xt: batch target Data
+    :param Ys: batch source labels
+    :param g:
+    :param n_labels:
+    :return:
+    '''
+
+    ys = Ys
+    xt = Xt
+    yt = np.zeros((n_labels, xt.shape[0]))  # [n_labels,n_target_sample]
+    # let labels start from a number
+    ysTemp = np.copy(ys)  # ys、ysTemp:[n_source_samples,]
+    # classes = np.unique(ysTemp)
+    n = n_labels
+    ns = len(ysTemp)
+
+    # perform label propagation
+    transp = g / np.sum(g, 1)[:, None]  # coupling_[i]:[n_source_samples,n_target_samples]
+
+    # set nans to 0
+    transp[~ np.isfinite(transp)] = 0
+
+    D1 = np.zeros((n, ns))  # [n_labels,n_source_samples]
+
+    for c in range(n_labels):
+        D1[int(c), ysTemp == c] = 1
+
+    # compute propagated labels
+    # / len(ys)=/ k, means uniform sources transfering
+    yt = yt + np.dot(D1, transp) / len(
+        ys)  # np.dot(D1, transp):[n_labels,n_target_samples] show the mass of every class for transfering to target samples
+
+    return yt.T  # n_samples,n_labels

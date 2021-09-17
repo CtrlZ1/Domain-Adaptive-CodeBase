@@ -41,11 +41,11 @@ args=parser.parse_args()
 
 
 
-# 默认CPU
+
 DEVICE=torch.device('cpu')
 kwargs={}
 
-# 如果Cuda可用就用Cuda
+
 if not args.noCuda and torch.cuda.is_available():
     DEVICE=torch.device('cuda:'+str(args.gpu))
     torch.cuda.manual_seed(args.seed)
@@ -58,7 +58,7 @@ print(DEVICE,torch.cuda.is_available())
 
 if __name__ == '__main__':
 
-    # 准备数据
+
     sourceTrainLoader, targetTrainLoader = dataLoader.loadTrainData(datasetRootAndImageSize[args.datasetIndex], args.batchSize,
                                                                    args.datasetIndex, datasetRootAndImageSize[args.datasetIndex][2],
                                                                    kwargs)

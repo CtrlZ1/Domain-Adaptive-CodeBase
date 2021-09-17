@@ -1,7 +1,8 @@
 # author:LENOVO
 # contact: ACoderlyy@163.com
-# datetime:2021/9/15 9:47
+# datetime:2021/9/16 9:30
 # software: PyCharm
+
 import os
 import torch.nn as nn
 import torch
@@ -12,16 +13,18 @@ import math
 import torch.optim as optim
 import torch.nn.functional as F
 
+from backBone import network_dict
 from discrepancies.MMD import MultipleKernelMaximumMeanDiscrepancy, GaussianKernel
 from utils import model_feature_tSNE
 
 def model_test(model,targetData):
     model.eval()
-    Output = model.backbone(targetData)
-    Output = model.bottleneck(Output)
-    Output = model.last_classifier(Output)
+    fc6_s, fc7_s, fc8_s = model.backbone(targetData)
+    targetOutput = fc8_s
+    targetOutput = model.bottleneck(targetOutput)
+    targetOutput = model.last_classifier(targetOutput)
 
-    return Output
+    return targetOutput
 
 def train_process(model,sourceDataLoader, targetDataLoader,sourceTestDataLoader,taragetTestDataLoader, device,imageSize,args):
 
@@ -40,7 +43,7 @@ def train_process(model,sourceDataLoader, targetDataLoader,sourceTestDataLoader,
         {'params': backbone.parameters()},
         {'params': bottleneck.parameters(), 'lr': args.lr},
         {'params': last_classifier.parameters(), 'lr': args.lr}
-    ], lr=args.lr / 10, momentum=args.momentum, weight_decay=args.l2Decay)
+    ], lr=args.lr / 10, momentum=args.momentum, weight_decay=args.l2_Decay)
 
     base_epoch=0
     if args.ifload:
@@ -68,7 +71,7 @@ def train_process(model,sourceDataLoader, targetDataLoader,sourceTestDataLoader,
         for batch_idx, (sourceData, sourceLabel) in tqdm.tqdm(enumerate(sourceDataLoader), total=lenSourceDataLoader,
                                                               desc='Train epoch = {}'.format(epoch), ncols=80,
                                                               leave=False):
-            print(f'Learning Rate: {learningRate.get_lr()}')
+            # print(f'Learning Rate: {learningRate.get_lr()}')
             sourceData, sourceLabel = sourceData.expand(len(sourceData), args.n_dim, imageSize, imageSize).to(
                 device), sourceLabel.to(device)
 
@@ -179,31 +182,37 @@ def test_process(model,sourceTestDataLoader,taragetTestDataLoader, device, args)
     return correct
 
 
-
-class DDCModel(nn.Module):
-    def __init__(self,args,device):
-        super(DDCModel,self).__init__()
-        modelAlexNet=models.alexnet(pretrained=True)
+class DANModel(nn.Module):
+    def __init__(self,device,args,baseNet='AlexNetFc_for_layerWiseAdaptation'):
+        super(DANModel,self).__init__()
+        self.backbone=network_dict[baseNet]()
         self.device=device
-        self.backbone=modelAlexNet
 
         self.bottleneck = nn.Sequential(
-            nn.Linear(1000, 256),
-            nn.ReLU(inplace=True)
+            nn.Linear(1000, args.bottleneck_dim),
+            nn.ReLU(),
         )
         self.last_classifier = nn.Sequential(
-            nn.Linear(256, args.n_labels)
+            nn.Linear(args.bottleneck_dim, args.n_labels)
         )
 
-    def forward(self,sourceData, targetData,mmd):
+    def forward(self,sourceData, targetData,mkmmd_loss):
+        fc6_s, fc7_s, fc8_s = self.backbone(sourceData)
+        sourceOutput = fc8_s
+        sourceOutput = self.bottleneck(sourceOutput)
 
-        sourcefeature = self.backbone(sourceData)
-        sourceOutput = self.bottleneck(sourcefeature)
-
-        targetfeature = self.backbone(targetData)
-        targetOutput = self.bottleneck(targetfeature)
-        mmd_loss = mmd(sourceOutput, targetOutput)
+        mmd_loss = 0
+        fc6_t, fc7_t, fc8_t = self.backbone(targetData)
+        targetOutput = fc8_t
+        targetOutput = self.bottleneck(targetOutput)
+        # mmd_loss += mkmmd_loss(sourceOutput, targetOutput)
+        mmd_loss += mkmmd_loss(fc8_s, fc8_t)
+        mmd_loss += mkmmd_loss(sourceOutput, targetOutput)
 
         sourceOutput = self.last_classifier(sourceOutput)
+        targetOutput = self.last_classifier(targetOutput)
+        mmd_loss += mkmmd_loss(sourceOutput, targetOutput)
 
         return sourceOutput, mmd_loss
+
+

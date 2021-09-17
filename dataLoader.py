@@ -40,13 +40,13 @@ def loadTrainData(path,batch_size,datasetIndex,imageSize,kwargs):
             root=path[1],
             transform=transform,
             train=True,
-            download=False
+            download=True
         )
         trainData_src = datasets.USPS(
             root=path[0],
             transform=transform,
             train=True,
-            download=False
+            download=True
         )
     # SVHN→MNIST
     elif datasetIndex==1:
@@ -59,13 +59,13 @@ def loadTrainData(path,batch_size,datasetIndex,imageSize,kwargs):
             root=path[1],
             transform=transform,
             train=True,
-            download=False
+            download=True
         )
         trainData_src=datasets.SVHN(
             root=path[0],
             transform=transform,
             split='train',
-            download=False
+            download=True
         )
     trainDataLoder_src = torch.utils.data.DataLoader(trainData_src, batch_size=batch_size, shuffle=True,
                                                      drop_last=True, **kwargs)
@@ -95,13 +95,13 @@ def loadTestData(path,batch_size,datasetIndex,imageSize,kwargs):
             root=path[0],
             transform=transform,
             train=False,
-            download=False
+            download=True
         )
         testData_tar = datasets.MNIST(
             root=path[1],
             transform=transform,
             train=False,
-            download=False
+            download=True
         )
     elif datasetIndex == 1:
         transform = transforms.Compose([
@@ -114,16 +114,60 @@ def loadTestData(path,batch_size,datasetIndex,imageSize,kwargs):
             root=path[0],
             transform=transform,
             split='test',
-            download=False
+            download=True
         )
         testData_tar = datasets.MNIST(
             root=path[1],
             transform=transform,
             train=False,
-            download=False
+            download=True
         )
     testDataLoder_src = torch.utils.data.DataLoader(testData_src, batch_size=batch_size, shuffle=True,
                                                      drop_last=False, **kwargs)
     testDataLoder_tar = torch.utils.data.DataLoader(testData_tar, batch_size=batch_size, shuffle=True,
                                                      drop_last=False, **kwargs)
     return testDataLoder_src, testDataLoder_tar
+
+
+
+
+def loadDigitsDataset(path,imageSize,name,train):
+    transform = transforms.Compose([
+        transforms.Resize((imageSize, imageSize)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=(0.5,), std=(0.5,))
+    ])
+    if name=='mnist':
+        Dataset = datasets.MNIST(
+            root=path,
+            transform=transform,
+            train=train,
+            download=True
+        )
+    elif name=='usps':
+        Dataset = datasets.USPS(
+            root=path,
+            transform=transform,
+            train=train,
+            download=True
+        )
+    elif name=='SVHN':
+        Dataset = datasets.SVHN(
+            root=path,
+            transform=transform,
+            split=train,
+            download=True
+        )
+    return Dataset
+
+def loadOfficeDataset(path,imageSize):
+    transform = transforms.Compose(
+        [
+            transforms.Resize((imageSize, imageSize)),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, .406], [0.229, 0.224, 0.225])
+        ]
+    )
+    Dataset = datasets.ImageFolder(root=path, transform=transform)
+
+    return Dataset
