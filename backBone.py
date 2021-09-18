@@ -30,9 +30,7 @@ class LeNet(nn.Module):
 class AlexNetFc(nn.Module):
     def __init__(self):
         super(AlexNetFc,self).__init__()
-        # 下载预训练的模型
         self.modelAlexNet=models.alexnet(pretrained=True)
-        # 获取卷积层提取的特征数据
         # self.features=nn.Sequential(
         #     nn.Conv2d(1, 64, kernel_size=11, stride=4, padding=2),
         # )
@@ -43,7 +41,6 @@ class AlexNetFc(nn.Module):
         self.classifier=self.modelAlexNet.classifier
         self.avgpool = self.modelAlexNet.avgpool
         # self.classifier=nn.Sequential()
-        # # 将模型的全连接层加入到分类器中
         # for i in range(6):
         #     self.classifier.add_module("classifier"+str(i),modelAlexNet.classifier[i])
     def forward(self,x):
@@ -57,9 +54,7 @@ class AlexNetFc(nn.Module):
 class AlexNetFc_for_layerWiseAdaptation(nn.Module):
     def __init__(self):
         super(AlexNetFc_for_layerWiseAdaptation,self).__init__()
-        # 下载预训练的模型
         self.modelAlexNet=models.alexnet(pretrained=True)
-        # 获取卷积层提取的特征数据
         # self.features=nn.Sequential(
         #     nn.Conv2d(1, 64, kernel_size=11, stride=4, padding=2),
         # )
@@ -70,7 +65,6 @@ class AlexNetFc_for_layerWiseAdaptation(nn.Module):
         self.classifier=self.modelAlexNet.classifier
         self.avgpool = self.modelAlexNet.avgpool
         # self.classifier=nn.Sequential()
-        # # 将模型的全连接层加入到分类器中
         # for i in range(6):
         #     self.classifier.add_module("classifier"+str(i),modelAlexNet.classifier[i])
     def forward(self,x):

@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import tqdm
 import numpy as np
 import os
+from torch.autograd import Function
 import matplotlib.pyplot as plt
 import matplotlib.colors as col
 import torch.autograd as autograd
@@ -212,3 +213,20 @@ def Label_propagation(Xt, Ys, g, n_labels):
         ys)  # np.dot(D1, transp):[n_labels,n_target_samples] show the mass of every class for transfering to target samples
 
     return yt.T  # n_samples,n_labels
+
+
+class ReverseLayerF(Function):
+    '''
+    the ruverse layer
+    '''
+    @staticmethod
+    def forward(ctx, x, alpha=0.0):
+        ctx.alpha = alpha
+
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        output = grad_output.neg() * ctx.alpha
+
+        return output, None
