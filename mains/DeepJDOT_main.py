@@ -43,7 +43,7 @@ parser.add_argument('--noCuda',action='store_true',default=False,help='use cude 
 parser.add_argument('--seed',type=int,default=1999,metavar='S',help='random seed.(default:1)')
 parser.add_argument('--logInterval', type=int,default=10,metavar='log',help='the interval to log for one time.(default=10)')
 parser.add_argument('--gpu', default=0, type=int,help='the index of GPU to use.(default=0)')
-parser.add_argument('--model_name',type=str,default='MCDA',help='the model')
+parser.add_argument('--model_name',type=str,default='DeepJDOT',help='the model')
 parser.add_argument('--savePath',type=str,default='../checkpoints/',help='the file to save models.(default=checkpoints/)')
 parser.add_argument('--ifsave',default=False,type=bool,help='the file to save models.(default=False)')
 parser.add_argument('--if_saveall',default=False,type=bool,help='if save all or just state.(default=False)')

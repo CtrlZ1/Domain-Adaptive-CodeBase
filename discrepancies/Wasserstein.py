@@ -24,3 +24,33 @@ def getGradientPenalty(critic,real_samples,fake_samples,args):
     gradient_penalty= ((gradients.norm(2,dim=1)-1)**2).mean()
 
     return gradient_penalty
+
+
+
+
+
+
+def sort_rows(matrix):
+    return torch.sort(matrix, descending=True,dim=0)[0]
+
+
+def discrepancy_slice_wasserstein(p1, p2,args):
+    '''
+    compute the sliced wasserstein distance
+    :param p1: classifier result from source
+    :param p2: classifier result from target
+    :param device: device
+    :return: sliced wasserstein
+    '''
+    s = p1.size(1)
+    if s > 1:
+        # For data more than one-dimensional, perform multiple random projection to 1-D
+        theta = torch.rand(args.n_labels, 128)
+        theta = (theta / torch.sum(theta,dim=0)).to(p1.device)
+
+        p1 = torch.matmul(p1,theta)
+        p2 = torch.matmul(p2,theta)
+    p1 = sort_rows(p1)
+    p2 = sort_rows(p2)
+    wdist = (p1-p2)**2
+    return torch.mean(wdist)

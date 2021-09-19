@@ -97,8 +97,8 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
             t_correct = test_correct
         print("max correct:" , t_correct)
         if epoch % args.logInterval == 0:
-            model_feature_tSNE(model, sourceTestDataLoader, taragetTestDataLoader, 'epoch' + str(epoch), DEVICE,
-                               args.model_name)
+            model_feature_tSNE(args, imageSize, model, sourceTestDataLoader, taragetTestDataLoader,
+                               'epoch' + str(epoch), DEVICE)
 
     if args.ifsave:
         path=args.savePath+args.model_name

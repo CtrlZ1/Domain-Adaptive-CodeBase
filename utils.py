@@ -33,7 +33,7 @@ datasetRootAndImageSize=[
 ]
 
 
-def model_feature_tSNE(model,sourceDataLoader,targetDataLoader,image_name,device,model_name):
+def model_feature_tSNE(args,image_size,model,sourceDataLoader,targetDataLoader,image_name,device):
     '''
     :param model: model
     :param sourceDataLoader: source data loader
@@ -42,11 +42,11 @@ def model_feature_tSNE(model,sourceDataLoader,targetDataLoader,image_name,device
     :param device: cpu or gpu
     :param model_name: the name of model, used for making new folder to save images
     '''
-    source_feature = collect_feature(sourceDataLoader, model, device)
-    target_feature = collect_feature(targetDataLoader, model, device)
-    tSNE_filename = os.path.join('../images/'+model_name, image_name+'.png')
-    if not os.path.exists('../images/'+model_name):
-        os.makedirs('../images/'+model_name)
+    source_feature = collect_feature(args,image_size,sourceDataLoader, model, device)
+    target_feature = collect_feature(args,image_size,targetDataLoader, model, device)
+    tSNE_filename = os.path.join('../images/'+args.model_name, image_name+'.png')
+    if not os.path.exists('../images/'+args.model_name):
+        os.makedirs('../images/'+args.model_name)
     tSNE(source_feature,target_feature,tSNE_filename)
 def tSNE(source_feature: torch.Tensor, target_feature: torch.Tensor,
               filename: str, source_color='r', target_color='b'):
@@ -75,7 +75,7 @@ def tSNE(source_feature: torch.Tensor, target_feature: torch.Tensor,
     plt.figure(figsize=(10, 10))
     plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=domains, cmap=col.ListedColormap([target_color, source_color]), s=2)
     plt.savefig(filename)
-def collect_feature(data_loader: DataLoader, feature_extractor: nn.Module,
+def collect_feature(args,image_size,data_loader: DataLoader, feature_extractor: nn.Module,
                                    device: torch.device, max_num_features=None) -> torch.Tensor:
     """
         Fetch data from `data_loader`, and then use `feature_extractor` to collect features
@@ -94,18 +94,23 @@ def collect_feature(data_loader: DataLoader, feature_extractor: nn.Module,
     print("start to extract features...")
     with torch.no_grad():
         for i, (images, target) in enumerate(tqdm.tqdm(data_loader)):
-            images = images.to(device)
-            if feature_extractor.backbone:
+            images = images.expand(len(images), args.n_dim, image_size, image_size).to(device)
+            try:
                 fc=feature_extractor.backbone(images)
-            else:
-                fc=feature_extractor.feature_extractor(images)
+            except Exception as e:
+                fc = feature_extractor.feature_extractor(images)
+
+
 
             if isinstance(fc,tuple):
                 feature = fc[2] # if backbone = AlexNetFc_for_layerWiseAdaptation
             else:
                 feature=fc
-            if feature_extractor.bottleneck:
+
+            try:
                 feature = feature_extractor.bottleneck(feature).cpu()
+            except Exception as e:
+                feature=feature.cpu()
 
             all_features.append(feature)
             if max_num_features is not None and i >= max_num_features:

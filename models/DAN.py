@@ -105,7 +105,8 @@ def train_process(model,sourceDataLoader, targetDataLoader,sourceTestDataLoader,
 
         test_process(model,sourceTestDataLoader,taragetTestDataLoader, device,args)
         if epoch%args.logInterval==0:
-            model_feature_tSNE(model, sourceTestDataLoader, taragetTestDataLoader, 'epoch'+str(epoch), device,args.model_name)
+            model_feature_tSNE(args, imageSize, model, sourceTestDataLoader, taragetTestDataLoader,
+                               'epoch' + str(epoch), device)
 
     if args.ifsave:
         path=args.savePath+args.model_name
