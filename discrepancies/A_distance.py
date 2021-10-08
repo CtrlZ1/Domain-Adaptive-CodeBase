@@ -14,12 +14,10 @@ import tqdm
 class ANet(nn.Module):
     def __init__(self, in_feature):
         super(ANet, self).__init__()
-        self.layer = nn.Linear(in_feature, 1)
-        self.sigmoid = nn.Sigmoid()
+        self.layer = nn.Linear(in_feature, 2)
 
     def forward(self, x):
         x = self.layer(x)
-        x = self.sigmoid(x)
         return x
 
 
@@ -41,8 +39,8 @@ def A_dis_calculate(source_feature: torch.Tensor, target_feature: torch.Tensor,
     Returns:
         :math:`\mathcal{A}`-distance
     """
-    source_label = torch.ones((source_feature.shape[0], 1))
-    target_label = torch.zeros((target_feature.shape[0], 1))
+    source_label = torch.ones((source_feature.shape[0], ))
+    target_label = torch.zeros((target_feature.shape[0],))
     feature = torch.cat([source_feature, target_feature], dim=0)
     label = torch.cat([source_label, target_label], dim=0)
 
@@ -66,7 +64,7 @@ def A_dis_calculate(source_feature: torch.Tensor, target_feature: torch.Tensor,
             label = label.to(device)
             anet.zero_grad()
             y = anet(x)
-            loss = F.binary_cross_entropy(y, label)
+            loss = nn.CrossEntropyLoss()(y, label)
             loss.backward(retain_graph=True)
             optimizer.step()
 
