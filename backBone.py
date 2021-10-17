@@ -2,10 +2,10 @@ import torch.nn as nn
 from torchvision import models
 import torch
 class LeNet(nn.Module):
-    def __init__(self):
+    def __init__(self,n_dim):
         super(LeNet,self).__init__()
         layer1 = nn.Sequential()
-        layer1.add_module('conv1',nn.Conv2d(3,6,5))
+        layer1.add_module('conv1',nn.Conv2d(n_dim,6,5))
         layer1.add_module('pool1',nn.MaxPool2d(2,2))
         self.layer1 = layer1
 
@@ -24,7 +24,7 @@ class LeNet(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = x.view(x.size(0),-1)
-        x = self.layer3(x)
+        # x = self.layer3(x)
         return x
 
 class AlexNetFc(nn.Module):
@@ -217,10 +217,12 @@ class ResNet152Fc(nn.Module):
         return x
 
 
-network_dict = {"AlexNet": AlexNetFc,
-                "AlexNetFc_for_layerWiseAdaptation": AlexNetFc_for_layerWiseAdaptation,
-                "ResNet18": ResNet18Fc,
-                "ResNet34": ResNet34Fc,
-                "ResNet50": ResNet50Fc,
-                "ResNet101": ResNet101Fc,
-                "ResNet152": ResNet152Fc}
+network_dict = {
+    "LeNet":LeNet,
+    "AlexNet": AlexNetFc,
+    "AlexNetFc_for_layerWiseAdaptation": AlexNetFc_for_layerWiseAdaptation,
+    "ResNet18": ResNet18Fc,
+    "ResNet34": ResNet34Fc,
+    "ResNet50": ResNet50Fc,
+    "ResNet101": ResNet101Fc,
+    "ResNet152": ResNet152Fc}

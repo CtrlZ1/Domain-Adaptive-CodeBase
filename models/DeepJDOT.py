@@ -144,9 +144,9 @@ def train_process(model,source,target,sourceDataLoader, targetDataLoader,sourceT
         print("label propagation acc...")
         print(float(label_propagation_correct) / (lenSourceDataLoader * args.batchSize))
 
-        if epoch%args.logInterval==0:
-            model_feature_tSNE(args, imageSize, model, sourceTestDataLoader, taragetTestDataLoader,
-                               'epoch' + str(epoch), device)
+        # if epoch%args.logInterval==0:
+        #     model_feature_tSNE(args, imageSize, model, sourceTestDataLoader, taragetTestDataLoader,
+        #                        'epoch' + str(epoch), device)
 
     if args.ifsave:
         path=args.savePath+args.model_name
@@ -257,7 +257,7 @@ class DeepJDOTModel(nn.Module):
         ).to(self.device)
         self.classifier_digits = nn.Sequential(
             nn.Linear(128, self.n_labels),
-            nn.Softmax()
+            # nn.Softmax()
         ).to(self.device)
 
     def forward(self, Data):

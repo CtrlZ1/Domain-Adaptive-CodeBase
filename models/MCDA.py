@@ -58,7 +58,6 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
 
             outPut = model(sourceData, targetData, True)
             sourceFeature, targetFeature, sourceLabel_pre, targeteLabel_pre = outPut[0], outPut[1], outPut[2], outPut[3]
-
             source_pre = sourceLabel_pre.data.max(1, keepdim=True)[1]
             correct += source_pre.eq(sourceLabel.data.view_as(source_pre)).sum()
 
@@ -245,7 +244,6 @@ class MCDAModel(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Linear(1024, args.n_labels),
-            nn.Softmax()
         )
 
         # D

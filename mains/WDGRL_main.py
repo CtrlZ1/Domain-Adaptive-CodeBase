@@ -16,11 +16,11 @@ parser=argparse.ArgumentParser()
 # model parameter
 parser.add_argument('--batchSize',type=int,default=128,help='input the batch size of training process.(default=128)')
 parser.add_argument('--epoch',type=int, default=1000,help='the number of epochs for training.(default=1000)')
-parser.add_argument('--lr',type=float,default=1e-3,metavar='LR',help='the learning rate for training.(default=5e-3)')
+parser.add_argument('--lr',type=float,default=2e-4,metavar='LR',help='the learning rate for training.(default=5e-3)')
 parser.add_argument('--n_labels',type=int,default=10,help='the number of sources and target labels')
 parser.add_argument('--n_critic',type=int,default=5,help='the number of training critic before training others one time.(default=5)')
 parser.add_argument('--n_clf',type=int,default=1,help='the number of training classifier after training critic one time.(default=1)')
-parser.add_argument('--n_dim',type=int,default=3,help='the channels of images.(default=3)')
+parser.add_argument('--n_dim',type=int,default=1,help='the channels of images.(default=3)')
 
 # hyperparameter
 parser.add_argument('--lambda_wd_clf',type=float,default=1.0,help='the Hyperparameter to weight the Wasserstein loss and classifier loss in total loss.(default=1.0)')
@@ -42,7 +42,7 @@ parser.add_argument('--if_saveall',default=False,type=bool,help='if save all or 
 parser.add_argument('--loadPath',default='../checkpoints/',type=str,help='the file to save models.(default=checkpoints/)')
 parser.add_argument('--ifload',default=False,type=bool,help='the file to save models.(default=False)')
 parser.add_argument('--usecheckpoints', default=False, type=bool,help='use the pretrained model.(default=False)')
-parser.add_argument('--datasetIndex',type=int,default=1,help='chose the index of dataset by it.(default=5)')
+parser.add_argument('--datasetIndex',type=int,default=4,help='chose the index of dataset by it.(default=5)')
 
 
 args=parser.parse_args()
