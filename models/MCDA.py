@@ -8,6 +8,7 @@ import torch.nn as nn
 import os
 import torch.nn.functional as F
 from discrepancies.Wasserstein import getGradientPenalty
+from torch.optim.lr_scheduler import LambdaLR
 from utils import one_hot_label, model_feature_tSNE, set_requires_grad
 
 
@@ -29,6 +30,7 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
     clf_criterion = nn.CrossEntropyLoss()
     lenSourceDataLoader = len(sourceDataLoader)
 
+
     base_epoch = 0
     if args.ifload:
         path = args.savePath + args.model_name
@@ -40,10 +42,19 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
         critic_optim.load_state_dict(checkpoint['critic_optim'])
         clf_optim.load_state_dict(checkpoint['clf_optim'])
         base_epoch = checkpoint['epoch']
+
+    learningRate_critic = LambdaLR(critic_optim,
+                                   lambda x: (1. + args.lr_gamma * (float(x) / (base_epoch + args.epoch))) ** (
+                                       -args.lr_decay))
+    learningRate_clf = LambdaLR(clf_optim,
+                                lambda x: (1. + args.lr_gamma * (float(x) / (base_epoch + args.epoch))) ** (
+                                    -args.lr_decay))
+
     t_correct=0
     for epoch in range(1 + base_epoch, base_epoch + args.epoch + 1):
         model.train()
         correct = 0
+        print(learningRate_clf.get_lr(), learningRate_critic.get_lr())
         for batch_idx, (sourceData, sourceLabel) in tqdm.tqdm(enumerate(sourceDataLoader), total=lenSourceDataLoader,
                                                               desc='Train epoch = {}'.format(epoch), ncols=80,
                                                               leave=False):
@@ -60,6 +71,7 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
             sourceFeature, targetFeature, sourceLabel_pre, targeteLabel_pre = outPut[0], outPut[1], outPut[2], outPut[3]
             source_pre = sourceLabel_pre.data.max(1, keepdim=True)[1]
             correct += source_pre.eq(sourceLabel.data.view_as(source_pre)).sum()
+            targeteLabel_soft = nn.Softmax(dim=1)(targeteLabel_pre)
 
             # Training critic
             for cc in critics:
@@ -71,7 +83,7 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
             T[args.n_labels] = 1
             sourceLabel_onehot = one_hot_label(sourceLabel, args.n_labels).to(DEVICE)
             ys_weight = torch.cat([sourceLabel_onehot, ones], dim=1).to(DEVICE)
-            yt_weight = torch.cat([targeteLabel_pre, ones], dim=1).to(DEVICE)
+            yt_weight = torch.cat([targeteLabel_soft, ones], dim=1).to(DEVICE)
             ys_weight = ys_weight / (torch.mean(ys_weight, dim=0) + 1e-6)
             yt_weight = yt_weight / (torch.mean(yt_weight, dim=0) + 1e-6)
             gradient_weights = ys_weight * yt_weight * T
@@ -89,19 +101,19 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
                 Critic_loss.backward(retain_graph=True)
 
                 critic_optim.step()
+                learningRate_critic.step(epoch)
             # Training classifier
             for cc in critics:
                 set_requires_grad(cc, False)
 
             for _ in range(args.n_clf):
                 clf_trust_target_loss = torch.zeros(1).to(DEVICE)
-                # I think trust target datas will bring errors to model,so i stop compute clf_trust_target_loss as following.
-                # num = 0
-                # for i in targeteLabel_pre:
-                #     if i.data.max() > args.theta:
-                #         num += 1
-                #         label = i.view(1, -1).data.max(1)[1]
-                #         clf_trust_target_loss += clf_criterion(i.view(1, -1), label)
+                num = 0
+                for index, i in enumerate(targeteLabel_pre):
+                    if targeteLabel_soft[index].data.max() > args.theta:
+                        num += 1
+                        label = i.view(1, -1).data.max(1)[1]
+                        clf_trust_target_loss += clf_criterion(i.view(1, -1), label)
                 clf_loss = clf_criterion(sourceLabel_pre, sourceLabel)
                 wd_loss = torch.zeros(1).to(DEVICE)
                 for i in range(args.n_labels + 1):
@@ -112,19 +124,20 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
                     wd_loss += alpha * ((ys_weight[:, i] * critics[i](sourceFeature)).mean() - (
                             yt_weight[:, i] * critics[i](targetFeature)).mean())
 
-                # classifer_and_wd_loss = (clf_loss * (len(sourceLabel) / (num + len(sourceLabel))) + (
-                #             clf_trust_target_loss / num) * (num / (num + len(sourceLabel)))) + args.n_clf * wd_loss
-                classifer_and_wd_loss = clf_loss+args.n_clf * wd_loss
+                classifer_and_wd_loss = (clf_loss * (len(sourceLabel) / (num + len(sourceLabel))) + (
+                            clf_trust_target_loss / num) * (num / (num + len(sourceLabel)))) + args.n_clf * wd_loss
+                # classifer_and_wd_loss = clf_loss+args.n_clf * wd_loss
                 clf_optim.zero_grad()
                 classifer_and_wd_loss.backward()
                 clf_optim.step()
+                learningRate_clf.step(epoch)
                 # for par in model.feature_extractor.parameters():
                 #    print(par.grad)
 
             if batch_idx % args.logInterval == 0:
                 print(
-                    '\ncritic_loss: {:.4f},  classifer_loss: {:.4f},  wd_Loss: {:.6f}'.format(
-                        Critic_loss.item(), clf_loss.item(), wd_loss.item()))
+                    '\ncritic_loss: {:.4f},  classifer_loss: {:.4f},  clf_trust_target_loss:{:.6f}, wd_Loss: {:.6f}'.format(
+                        Critic_loss.item(), clf_loss.item(), clf_trust_target_loss.item(),wd_loss.item()))
 
 
         acc_train = float(correct) * 100. / (lenSourceDataLoader * args.batchSize)
@@ -244,7 +257,7 @@ class MCDAModel(nn.Module):
 
 
         self.classifier = nn.Sequential(
-            nn.Linear(1024, args.n_labels),
+            nn.Linear(1024, args.n_labels)
         )
 
         # D

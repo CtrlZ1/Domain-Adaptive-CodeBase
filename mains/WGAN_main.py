@@ -56,10 +56,9 @@ print(DEVICE,torch.cuda.is_available())
 
 
 if __name__ == '__main__':
-
-    sourceTrainLoader, targetTrainLoader = dataLoader.loadTrainData(datasetRootAndImageSize[args.datasetIndex], args.batchSize,
-                                                                   args.datasetIndex, datasetRootAndImageSize[args.datasetIndex][2],
-                                                                   kwargs)
+    sourceTrainLoader, sourceTestLoader, targetTrainLoader, targetTestLoader = \
+        dataLoader.singleSourceDataLoader(args.batchSize, datasetRootAndImageSize[args.datasetIndex][0],
+                                          datasetRootAndImageSize[args.datasetIndex][1], kwargs)
 
     mcdamodel=WGANModel(args,datasetRootAndImageSize[args.datasetIndex][2]).to(DEVICE)
 

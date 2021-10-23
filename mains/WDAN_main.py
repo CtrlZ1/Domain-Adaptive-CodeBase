@@ -59,12 +59,9 @@ print(DEVICE,torch.cuda.is_available())
 
 
 if __name__ == '__main__':
-
-    sourceTrainLoader, targetTrainLoader = dataLoader.loadTrainData(datasetRootAndImageSize[args.datasetIndex], args.batchSize,
-                                                                   args.datasetIndex, datasetRootAndImageSize[args.datasetIndex][2],kwargs)
-    sourceTestLoader, targetTestLoader = dataLoader.loadTestData(datasetRootAndImageSize[args.datasetIndex], args.batchSize, args.datasetIndex,
-                                               datasetRootAndImageSize[args.datasetIndex][2], kwargs)
+    sourceTrainLoader, sourceTestLoader, targetTrainLoader, targetTestLoader = \
+        dataLoader.singleSourceDataLoader(args.batchSize, datasetRootAndImageSize[args.datasetIndex][0],
+                                          datasetRootAndImageSize[args.datasetIndex][1], kwargs)
     model = WDANModel(DEVICE,args).to(DEVICE)
     train_process(model,sourceTrainLoader, targetTrainLoader,sourceTestLoader,targetTestLoader ,DEVICE,datasetRootAndImageSize[args.datasetIndex][2],args)
     test_process(model,sourceTestLoader,targetTestLoader,DEVICE,args)
-    model_feature_tSNE(model,sourceTrainLoader,targetTestLoader,'last',DEVICE,args.model_name)

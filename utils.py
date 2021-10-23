@@ -15,21 +15,21 @@ from typing import Optional, Any, Tuple
 # the root of dataset and the size of images,[source data root, target data root, size of images]
 datasetRootAndImageSize=[
     # office-31 a-w 0
-    [r"E:\transferlearning\data\office-31\Original_images\amazon",r"E:\transferlearning\data\office-31\Original_images\webcam",224],
+    ["Office31-amazon","Office31-webcam",224],
     # svhn->mnist 1
-    [r'E:\transferlearning\data\SVHN',r'E:\transferlearning\data\MNIST',28],
+    ['SVHN','MNIST',28],
     #mnist-mnist-m 2
-    [r'E:\transferlearning\data\MNIST',r'E:\transferlearning\data\MNIST-M\mnist_m',28],
+    ['MNIST','MNIST-M',28],
     #ImageCLEF 2014 3
-    [r'E:\transferlearning\data\ImageCLEF 2014\b',r'E:\transferlearning\data\ImageCLEF 2014\c'],
+    ['ImageCLEF_2014-b','ImageCLEF_2014-c',28],
     # usps-mnist 4
-    [r'E:\transferlearning\data\usps',r'E:\transferlearning\data\MNIST',28],
+    ['USPS','MNIST',28],
     # office_caltech_10 a-w 5
-    [r"E:\transferlearning\data\office_caltech_10\caltech",r"E:\transferlearning\data\office_caltech_10\webcam",224],
+    ["Office_celtech10-caltech","Office_celtech10-webcam",224],
     # mnist-usps 6
-    [r'E:\transferlearning\data\MNIST', r'E:\transferlearning\data\usps',16],
+    ['MNIST', 'USPS',28],
     # SVHN、USPS->MNIST 7
-    [[r'E:\transferlearning\data\SVHN',r'E:\transferlearning\data\usps'], r'E:\transferlearning\data\MNIST',28],
+    [['SVHN','USPS'], 'MNIST',28],
 
 ]
 

@@ -257,7 +257,6 @@ class DeepJDOTModel(nn.Module):
         ).to(self.device)
         self.classifier_digits = nn.Sequential(
             nn.Linear(128, self.n_labels),
-            # nn.Softmax()
         ).to(self.device)
 
     def forward(self, Data):

@@ -18,7 +18,7 @@ parser=argparse.ArgumentParser()
 # model parameter
 parser.add_argument('--batchSize',type=int,default=128,metavar='batchSize',help='input the batch size of training process.(default=64)')
 parser.add_argument('--epoch',type=int, default=1000,metavar='epoch',help='the number of epochs for training.(default=100)')
-parser.add_argument('--lr',type=float,default=1e-3,metavar='LR',help='the learning rate for training.(default=1e-2)')
+parser.add_argument('--lr',type=float,default=2e-3,metavar='LR',help='the learning rate for training.(default=1e-2)')
 parser.add_argument('--critic_dim',type=int,default=100,help='the Number of neurons in critic.(default=100)')
 parser.add_argument('--n_critic',type=int,default=5,help='the number of training critic before training others one time.(default=5)')
 parser.add_argument('--n_clf',type=int,default=1,help='the number of training classifier after training critic one time.(default=1)')
@@ -29,14 +29,16 @@ parser.add_argument('--n_dim',type=int,default=1,help='the channels of images.(d
 parser.add_argument('--alpha',type=float,default=1e-4)
 parser.add_argument('--momentum',type=float,default=0.9,metavar='M',help='SGD momentum.(default=0.9)')
 parser.add_argument('--lambda_wd_clf',type=float,default=1.0,help='the Hyperparameter to weight the Wasserstein loss and classifier loss in total loss.(default=1.0)')
-parser.add_argument('--theta', default=0.9, type=float,help='the threshold of softmax to use target data to train.(default=0.9)')
+parser.add_argument('--theta', default=0.95, type=float,help='the threshold of softmax to use target data to train.(default=0.9)')
 parser.add_argument('--lambda_gp',type=float,default=10.0,help='the Hyperparameter to weight the Gradient Penalty loss in total loss.(default=10.0)')
 parser.add_argument('--l2Decay',type=float,default=5e-4,help='the L2 weight decay.(default=5e-4')
 
 # setting parameter
+parser.add_argument('--lr_gamma', default=5, type=float, help='parameter for lr scheduler.(default=3e-4)')
+parser.add_argument('--lr_decay', default=0.75, type=float, help='parameter for lr scheduler.(default=0.75)')
 parser.add_argument('--noCuda',action='store_true',default=False,help='use cude in training process or do not.(default=Flase)')
 parser.add_argument('--seed',type=int,default=1999,metavar='S',help='random seed.(default:1)')
-parser.add_argument('--logInterval', type=int,default=50,metavar='log',help='the interval to log for one time.(default=10)')
+parser.add_argument('--logInterval', type=int,default=10,metavar='log',help='the interval to log for one time.(default=10)')
 parser.add_argument('--gpu', default=0, type=int,help='the index of GPU to use.(default=0)')
 parser.add_argument('--model_name',type=str,default='MCDA',help='the model')
 parser.add_argument('--savePath',type=str,default='../checkpoints/',help='the file to save models.(default=checkpoints/)')
@@ -65,13 +67,9 @@ print(DEVICE,torch.cuda.is_available())
 
 
 if __name__ == '__main__':
-
-
-    sourceTrainLoader, targetTrainLoader = dataLoader.loadTrainData(datasetRootAndImageSize[args.datasetIndex], args.batchSize,
-                                                                   args.datasetIndex, datasetRootAndImageSize[args.datasetIndex][2],
-                                                                   kwargs)
-    sourceTestLoader,targetTestLoader = dataLoader.loadTestData(datasetRootAndImageSize[args.datasetIndex], args.batchSize, args.datasetIndex,
-                                                                datasetRootAndImageSize[args.datasetIndex][2], kwargs)
+    sourceTrainLoader, sourceTestLoader, targetTrainLoader, targetTestLoader = \
+        dataLoader.singleSourceDataLoader(args.batchSize, datasetRootAndImageSize[args.datasetIndex][0],
+                                          datasetRootAndImageSize[args.datasetIndex][1], kwargs)
 
     mcdamodel=MCDAModel(args).to(DEVICE)
 
