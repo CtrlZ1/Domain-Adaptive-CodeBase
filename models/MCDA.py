@@ -60,11 +60,11 @@ def train_process(model, sourceDataLoader, targetDataLoader,sourceTestDataLoader
                                                               leave=False):
 
             sourceData, sourceLabel = sourceData.expand(len(sourceData), args.n_dim, imageSize, imageSize).to(
-                DEVICE), sourceLabel.to(DEVICE)
+                DEVICE), sourceLabel.long().to(DEVICE)
 
             for targetData, targetLabel in targetDataLoader:
                 targetData, targetLabel = targetData.expand(len(targetData), args.n_dim, imageSize, imageSize).to(
-                    DEVICE), targetLabel.to(DEVICE)
+                    DEVICE), targetLabel.long().to(DEVICE)
                 break
 
             outPut = model(sourceData, targetData, True)

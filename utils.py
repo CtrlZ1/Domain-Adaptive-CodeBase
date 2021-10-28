@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as col
 import torch.autograd as autograd
 from typing import Optional, Any, Tuple
+import math
 
 # the root of dataset and the size of images,[source data root, target data root, size of images]
 datasetRootAndImageSize=[
@@ -131,6 +132,15 @@ def one_hot_label(Labels,n_labels):
 
     return ont_hot_l
 
+def get_lam(iter,alliters,gamma=10):
+    '''
+
+    :param iter: iter number for now
+    :param alliters: total iter number
+    :param gamma: the general setting is 10
+    :return:
+    '''
+    return 2.0/(1.0+math.exp(-gamma*float(iter)/alliters))-1
 
 def set_requires_grad(model, requires_grad=True):
     '''
@@ -285,3 +295,4 @@ class WarmStartGradientReverseLayer(nn.Module):
     def step(self):
         """Increase iteration number :math:`i` by 1"""
         self.iter_num += 1
+
