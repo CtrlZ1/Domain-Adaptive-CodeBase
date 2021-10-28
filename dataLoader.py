@@ -39,6 +39,24 @@ data_name2path={
     'ImageCLEF_2014-p':r'E:\transferlearning\data\ImageCLEF 2014\p',
 
 }
+# data_name2path={
+#     'SVHN':'/home/lyy/datas/digits/SVHN',
+#     'MNIST':'/home/lyy/datas/digits/MNIST',
+#     'USPS':'/home/lyy/datas/digits/usps',
+#     'MNIST-M':'/home/lyy/datas/digits/mnist_m',
+#     'syn':'/home/lyy/datas/digits/syn_number.mat',
+#     'Office31-amazon':"/home/lyy/datas/office31/amazon",
+#     'Office31-webcam':"/home/lyy/datas/office31/webcam",
+#     'Office31-dslr':"/home/lyy/datas/office31/dslr",
+#     'Officehome-Art':'/home/lyy/datas/office-home/Art',
+#     'Officehome-Clipart':'/home/lyy/datas/office-home/Clipart',
+#     'Officehome-Product':'/home/lyy/datas/office-home/Product',
+#     'Officehome-Real World':'/home/lyy/datas/office-home/Real World',
+#     'Office_celtech10-amazon':"/home/lyy/datas/office_caltech_10/amazon",
+#     'Office_celtech10-caltech':"/home/lyy/datas/office_caltech_10/caltech",
+#     'Office_celtech10-webcam':"/home/lyy/datas/office_caltech_10/webcam",
+#     'Office_celtech10-dslr':"/home/lyy/datas/office_caltech_10/dslr"
+# }
 
 class DefineDataset(Dataset):
     def __init__(self,sourcedata,sourcelabel,transform=None):
